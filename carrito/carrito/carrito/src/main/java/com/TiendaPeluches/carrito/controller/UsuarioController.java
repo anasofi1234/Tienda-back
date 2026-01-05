@@ -1,25 +1,21 @@
 package com.TiendaPeluches.carrito.controller;
 
-import java.security.Principal;
 import java.util.Map;
 
 import com.TiendaPeluches.carrito.security.JwtUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import com.TiendaPeluches.carrito.dto.UsuarioDTO;
 import com.TiendaPeluches.carrito.entity.Usuario;
 import com.TiendaPeluches.carrito.repository.UsuarioRepository;
 import com.TiendaPeluches.carrito.service.UsuarioService;
-import org.springframework.security.core.AuthenticationException;
-
 
 @RestController
 @RequestMapping("/usuarios")
@@ -38,15 +34,16 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    // ================= REGISTRO =================
     @PostMapping
-    public ResponseEntity<UsuarioDTO> crear(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<UsuarioDTO> crear(
+            @Valid @RequestBody UsuarioDTO usuarioDTO) {
+
         UsuarioDTO creado = servicio.crearUsuario(usuarioDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    /**
-     * LOGIN + CREA SESIÓN + GUARDA AUTHENTICATION
-     */
+    // ================= LOGIN =================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
 
@@ -54,19 +51,15 @@ public class UsuarioController {
             String correo = body.get("correo");
             String password = body.get("password");
 
-            // 1️⃣ Autenticación (Spring Security valida contra la BD)
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(correo, password)
             );
 
-            // 2️⃣ Usuario autenticado correctamente
             Usuario usuario = usuarioRepo.findByCorreo(correo)
                     .orElseThrow();
 
-            // 3️⃣ Generar JWT
             String token = jwtUtil.generarToken(correo);
 
-            // 4️⃣ Respuesta: usuario + token
             return ResponseEntity.ok(
                     Map.of(
                             "token", token,
@@ -80,21 +73,16 @@ public class UsuarioController {
                     .body("Credenciales incorrectas");
         }
     }
-    
-    /**
-     * PERFIL AUTENTICADO
-     */
+
+    // ================= PERFIL =================
     @GetMapping("/perfil")
     public ResponseEntity<UsuarioDTO> perfil(Authentication auth) {
 
-        String correo = auth.getName();
-
-        Usuario usuario = usuarioRepo.findByCorreo(correo)
+        Usuario usuario = usuarioRepo.findByCorreo(auth.getName())
                 .orElseThrow();
 
         return ResponseEntity.ok(UsuarioDTO.fromEntity(usuario));
     }
-
 
     @GetMapping("/{id}")
     public UsuarioDTO obtener(@PathVariable Long id) {

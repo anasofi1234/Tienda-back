@@ -21,39 +21,46 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioDTO crearUsuario(UsuarioDTO usuarioDTO) {
+
+        if (usuarioDTO.getContrasena() == null) {
+            throw new IllegalArgumentException("La contraseña no puede ser nula");
+        }
+
         Usuario usuario = new Usuario();
         usuario.setNombre(usuarioDTO.getNombre());
         usuario.setApellido(usuarioDTO.getApellido());
         usuario.setCorreo(usuarioDTO.getCorreo());
         usuario.setTelefono(usuarioDTO.getTelefono());
 
-        // Encriptar la contraseña real del registro
-        String raw = usuarioDTO.getContrasena();
-        usuario.setContrasena(passwordEncoder.encode(raw));
+        usuario.setContrasena(
+                passwordEncoder.encode(usuarioDTO.getContrasena())
+        );
 
         Usuario saved = usuarioRepo.save(usuario);
         return UsuarioDTO.fromEntity(saved);
     }
 
-
-
-    // Opcional: si alguna parte del código llama a este login, usar PasswordEncoder.matches
     @Override
     public UsuarioDTO login(String correo, String password) {
+
         Usuario usuario = usuarioRepo.findByCorreo(correo)
                 .orElseThrow(() -> new LoginException("Correo no existe"));
 
-        if (!passwordEncoder.matches(password, usuario.getContrasena()))
+        if (!passwordEncoder.matches(password, usuario.getContrasena())) {
             throw new LoginException("Contraseña incorrecta");
+        }
 
         return UsuarioDTO.fromEntity(usuario);
     }
 
     @Override
     public UsuarioDTO obtenerPorId(Long id) {
+
         Usuario usuario = usuarioRepo.findById(id)
-                .orElseThrow(() -> new UsuarioNoEncontradoException("Usuario no encontrado con id " + id));
+                .orElseThrow(() ->
+                        new UsuarioNoEncontradoException(
+                                "Usuario no encontrado con id " + id));
+
         return UsuarioDTO.fromEntity(usuario);
     }
 }
-
