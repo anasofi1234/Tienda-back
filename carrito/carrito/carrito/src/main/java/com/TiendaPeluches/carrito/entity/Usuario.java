@@ -7,11 +7,15 @@ import java.util.Date;
 @Table(name = "USUARIO")
 public class Usuario {
 
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usuarios_seq")
     @SequenceGenerator(name = "usuarios_seq", sequenceName = "usuarios_seq", allocationSize = 1)
     @Column(name = "ID_USUARIO")
     private Long id;
+    
+    
 
     @Column(nullable = false)
     private String nombre;

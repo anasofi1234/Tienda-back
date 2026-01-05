@@ -22,8 +22,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public UsuarioDTO crearUsuario(UsuarioDTO usuarioDTO) {
 
-        if (usuarioDTO.getContrasena() == null) {
-            throw new IllegalArgumentException("La contraseña no puede ser nula");
+        // 🔒 VALIDAR CORREO ÚNICO
+        if (usuarioRepo.findByCorreo(usuarioDTO.getCorreo()).isPresent()) {
+            throw new IllegalArgumentException("El correo ya está registrado");
         }
 
         Usuario usuario = new Usuario();

@@ -36,11 +36,15 @@ public class UsuarioController {
 
     // ================= REGISTRO =================
     @PostMapping
-    public ResponseEntity<UsuarioDTO> crear(
-            @Valid @RequestBody UsuarioDTO usuarioDTO) {
-
-        UsuarioDTO creado = servicio.crearUsuario(usuarioDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+    public ResponseEntity<?> crear(@Valid @RequestBody UsuarioDTO usuarioDTO) {
+        try {
+            UsuarioDTO creado = servicio.crearUsuario(usuarioDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ================= LOGIN =================
